@@ -29,4 +29,3 @@ class Horario:
 
     class TimeException(Exception):
         pass
-

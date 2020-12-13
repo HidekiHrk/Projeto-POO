@@ -77,15 +77,15 @@ class Reserva:
         c.execute(f"SELECT id, socio_id, sala_id, horario FROM Reserva {field_str}",
                   (*fields.values(),))
         data_list = c.fetchall()
+        reservas = []
         if len(data_list) > 1:
-            reservas = []
             for data in data_list:
                 this_id, socio_id, sala_id, horario = data
-                horario = Horario.get_by_timestring(horario)
+                horario = Horario.get_by_timestring(str(horario))
                 socio = Socio.get(socio_id)
                 sala = Sala.get(sala_id)
                 reservas.append(Reserva(this_id, socio, sala, horario))
-            return reservas
+        return reservas
 
     def add_funcionario(self, funcionario: Funcionario):
         if isinstance(funcionario, Socio):
@@ -106,6 +106,17 @@ class Reserva:
         c.execute("DELETE FROM Ramal WHERE funcionario_id = ?, reserva_id = ?",
                   (funcionario.id, self.__id,))
         conn.commit()
+
+    def get_all_funcionarios(self):
+        """
+        :return: ((id, name, role), ...,)
+        """
+        c.execute("""
+            SELECT id, name, role FROM Funcionario WHERE id IN
+            (SELECT funcionario_id FROM Ramal WHERE reserva_id = ?)
+        """, (self.__id,))
+        data = c.fetchall()
+        return data
 
     class AlreadyExistsException(Exception):
         pass

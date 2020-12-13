@@ -1,8 +1,7 @@
-from abc import ABC
 from orm.db import c, conn
 
 
-class Funcionario(ABC):
+class Funcionario:
     def __init__(self, name: str, funcionario_id: int):
         self.__name = name
         self.__id = funcionario_id
@@ -53,5 +52,15 @@ class Funcionario(ABC):
             funcionarios.append(cls(*query))
         return funcionarios
 
+    @staticmethod
+    def display_all():
+        """
+        :return: ((id, name, role), ...,)
+        """
+        c.execute("SELECT name, id, role FROM Funcionario")
+        query_list = c.fetchall()
+        return query_list
+
     class NotFoundException(Exception):
         pass
+
