@@ -1,23 +1,25 @@
-from random import randint
+from orm.db import create_tables
+from funcionarios.socio import Socio
+from funcionarios.programador import Programador
+from orm.sala import Sala
+from orm.reserva import Reserva
+from orm.horario import Horario
 
-from poo_entities.sala import Sala
-from poo_entities.socio import Socio
-from poo_entities.programador import Programador
-from poo_entities.secretario import Secretario
 
+class Program:
+    def __init__(self):
+        self.is_running = False
 
-def main():
-    salas = [Sala(id, randint(5, 15)) for id in range(4)]
-    socio1 = Socio("Ricardo")
-    socio2 = Socio("Rayan")
-    secretario1 = Secretario("Jefferson")
-    programador1 = Programador("Diego")
-    reserva1 = socio1.create_reserva((22, 8, 13), salas[0])
-    reserva1.set_funcionario(0, socio2)
-    reserva1.set_funcionario(3, secretario1)
-    reserva1.set_funcionario(2, programador1)
-    print(*reserva1.view_ramais(), sep="\n")
+    def update(self):
+        pass
+
+    def start(self):
+        self.is_running = True
+        create_tables()
+        while self.is_running:
+            self.update()
 
 
 if __name__ == '__main__':
-    main()
+    program = Program()
+    program.start()
