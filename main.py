@@ -6,9 +6,20 @@ from orm.reserva import Reserva
 from orm.horario import Horario
 
 
-def main():
-    create_tables()
+class Program:
+    def __init__(self):
+        self.is_running = False
+
+    def update(self):
+        pass
+
+    def start(self):
+        self.is_running = True
+        create_tables()
+        while self.is_running:
+            self.update()
 
 
 if __name__ == '__main__':
-    main()
+    program = Program()
+    program.start()
