@@ -30,10 +30,18 @@ class Sala:
         raise cls.NotFoundException("Sala não encontrada")
 
     @classmethod
-    def getall(cls):
+    def get_all(cls):
         c.execute("SELECT id, spaces FROM Sala")
         salas = map(lambda d: Sala(*d), c.fetchall())
         return salas
+
+    def delete(self):
+        c.execute("DELETE FROM Sala WHERE id = ?", (self.__id,))
+        conn.commit()
+        c.execute("DELETE FROM Reserva WHERE sala_id IS NULL")
+        conn.commit()
+        c.execute("DELETE FROM Ramal WHERE reserva_id IS NULL")
+        conn.commit()
 
     class NotFoundException(Exception):
         pass

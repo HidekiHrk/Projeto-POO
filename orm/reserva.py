@@ -50,6 +50,8 @@ class Reserva:
 
     @classmethod
     def create(cls, socio: 'Socio', sala: 'Sala', horario: 'Horario'):
+        if not isinstance(socio, Socio):
+            raise cls.NotSocioException('É necessário ser um sócio para fazer uma reserva.')
         # check if another reserva with same socio/sala/horario parameters already exists.
         c.execute(
             "SELECT id FROM Reserva WHERE (socio_id = ? OR sala_id = ?) AND horario = ?",
@@ -86,6 +88,8 @@ class Reserva:
             return reservas
 
     def add_funcionario(self, funcionario: Funcionario):
+        if isinstance(funcionario, Socio):
+            raise self.NotSocioException('Sócios não podem ser adicionados a ramais.')
         c.execute("SELECT funcionario_id FROM Ramal WHERE funcionario_id = ?, reserva_id = ?",
                   (funcionario.id, self.__id,))
         if c.fetchone():
@@ -98,5 +102,13 @@ class Reserva:
                   (funcionario.id, self.id,))
         conn.commit()
 
+    def remove_funcionario(self, funcionario: Funcionario):
+        c.execute("DELETE FROM Ramal WHERE funcionario_id = ?, reserva_id = ?",
+                  (funcionario.id, self.__id,))
+        conn.commit()
+
     class AlreadyExistsException(Exception):
+        pass
+
+    class NotSocioException(Exception):
         pass
