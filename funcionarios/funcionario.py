@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from orm.db import c, conn
 
 
@@ -32,10 +32,6 @@ class Funcionario(ABC):
             name = query_obj[0]
             return Funcionario(name, funcionario_id)
         raise cls.NotFoundException(f'O usuário de id {funcionario_id} não existe.')
-
-    @abstractmethod
-    def get_reservas(self, *ids: int):
-        pass
 
     class NotFoundException(Exception):
         pass

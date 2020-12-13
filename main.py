@@ -1,4 +1,6 @@
 import orm.db
+from funcionarios.socio import Socio
+from funcionarios.programador import Programador
 
 
 def main():

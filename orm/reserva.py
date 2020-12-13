@@ -1,4 +1,8 @@
+from typing import List
 from funcionarios.funcionario import Funcionario
+from funcionarios.socio import Socio
+from orm.sala import Sala
+from orm.horario import Horario
 from orm.db import c, conn
 
 
@@ -8,7 +12,6 @@ class Reserva:
         self.__socio = socio
         self.__sala = sala
         self.__horario = horario
-        # get reserva by id
 
     @property
     def id(self):
@@ -39,14 +42,21 @@ class Reserva:
         conn.commit()
         self.__horario = value
 
-    def create(self, socio: 'Socio', sala: 'Sala', horario: 'Horario'):
+    def remove(self):
+        c.execute("DELETE FROM Reserva WHERE id = ?", (self.__id,))
+        conn.commit()
+        c.execute("DELETE FROM Ramal WHERE reserva_id IS NULL")
+        conn.commit()
+
+    @classmethod
+    def create(cls, socio: 'Socio', sala: 'Sala', horario: 'Horario'):
         # check if another reserva with same socio/sala/horario parameters already exists.
         c.execute(
             "SELECT id FROM Reserva WHERE (socio_id = ? OR sala_id = ?) AND horario = ?",
             (socio.id, sala.id, str(horario),)
         )
         if c.fetchone():
-            raise self.AlreadyExistsException(
+            raise cls.AlreadyExistsException(
                 "Uma reserva já foi feita nesta combinação de sócio/sala e horário.")
         c.execute("INSERT INTO Reserva (socio_id, sala_id, horario) (?,?,?)",
                   (socio.id, sala.id, str(horario),))
@@ -54,18 +64,36 @@ class Reserva:
         conn.commit()
         return Reserva(this_id, socio, sala, horario)
 
-    def get_by(self, field_name: str) -> 'Reserva':
+    @staticmethod
+    def get_by(**fields) -> List['Reserva']:
         """
-        :param field_name: id | socio_id | sala_id | horario
+        :param fields: id | socio_id | sala_id | horario
         :return: orm.reserva.Reserva
         """
-        pass
+        field_str = ' AND '.join(map(lambda kv: f'{kv[0]} = ?', fields.keys()))
+        field_str = 'WHERE ' + field_str if field_str != '' else ''
+        c.execute(f"SELECT id, socio_id, sala_id, horario FROM Reserva {field_str}",
+                  (*fields.values(),))
+        data_list = c.fetchall()
+        if len(data_list) > 1:
+            reservas = []
+            for data in data_list:
+                this_id, socio_id, sala_id, horario = data
+                horario = Horario.get_by_timestring(horario)
+                socio = Socio.get(socio_id)
+                sala = Sala.get(sala_id)
+                reservas.append(Reserva(this_id, socio, sala, horario))
+            return reservas
 
     def add_funcionario(self, funcionario: Funcionario):
         c.execute("SELECT funcionario_id FROM Ramal WHERE funcionario_id = ?, reserva_id = ?",
                   (funcionario.id, self.__id,))
         if c.fetchone():
             raise self.AlreadyExistsException("O funcionário em questão já possui um Ramal nesta reserva.")
+        c.execute("SELECT reserva_id FROM Ramal WHERE reserva_id = ?", (self.__id,))
+        actual_length = len(c.fetchall())
+        if actual_length >= self.sala.vagas:
+            raise Sala.ExceedingLengthException('A quantidade de vagas na sala acabou.')
         c.execute("INSERT INTO Ramal (funcionario_id, reserva_id) (?,?)",
                   (funcionario.id, self.id,))
         conn.commit()

@@ -14,8 +14,18 @@ class Horario:
         self.month = month
         self.day = day
 
+    def timestring(self):
+        return f'{self.day}.{self.month}.{self.hour}'
+
     def __str__(self):
+        return self.timestring()
+
+    def __repr__(self):
         return f'{self.day}/{self.month} {self.hour}h'
+
+    @staticmethod
+    def get_by_timestring(timestring: str):
+        return Horario(*timestring.split('.'))
 
     class TimeException(Exception):
         pass
