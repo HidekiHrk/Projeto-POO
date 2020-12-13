@@ -51,6 +51,7 @@ class Funcionario(ABC):
         funcionarios = []
         for query in query_list:
             funcionarios.append(cls(*query))
+        return funcionarios
 
     class NotFoundException(Exception):
         pass
