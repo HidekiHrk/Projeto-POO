@@ -34,8 +34,12 @@ class Funcionario:
 
     @classmethod
     def get(cls, funcionario_id: int):
-        c.execute("SELECT name FROM Funcionario WHERE id = ? AND role = ?",
-                  (funcionario_id, cls.get_role(),))
+        if cls == Funcionario:
+            c.execute("SELECT name FROM Funcionario WHERE id = ?",
+                      (funcionario_id,))
+        else:
+            c.execute("SELECT name FROM Funcionario WHERE id = ? AND role = ?",
+                      (funcionario_id, cls.get_role(),))
         query_obj = c.fetchone()
         if query_obj:
             name = query_obj[0]
