@@ -15,7 +15,7 @@ class Horario:
         self.day = day
 
     def timestring(self):
-        return f'{self.day}.{self.month}.{self.hour}'
+        return f'{self.day}.{self.month},{self.hour}'
 
     def __str__(self):
         return self.timestring()
@@ -25,7 +25,9 @@ class Horario:
 
     @staticmethod
     def get_by_timestring(timestring: str):
-        return Horario(*timestring.split('.'))
+        timestring = timestring.replace(',', '.')
+        timetuple = map(lambda x: int(x), timestring.split('.'))
+        return Horario(*timetuple)
 
     class TimeException(Exception):
         pass

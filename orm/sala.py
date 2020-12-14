@@ -16,7 +16,7 @@ class Sala:
 
     @classmethod
     def create(cls, vagas: int):
-        c.execute("INSERT INTO Sala (spaces) (?)", (vagas,))
+        c.execute("INSERT INTO Sala (spaces) VALUES (?)", (vagas,))
         this_id = c.lastrowid
         conn.commit()
         return Sala(this_id, vagas)
@@ -32,7 +32,7 @@ class Sala:
     @classmethod
     def get_all(cls):
         c.execute("SELECT id, spaces FROM Sala")
-        salas = map(lambda d: Sala(*d), c.fetchall())
+        salas = tuple(map(lambda d: Sala(*d), c.fetchall()))
         return salas
 
     def delete(self):
@@ -42,6 +42,9 @@ class Sala:
         conn.commit()
         c.execute("DELETE FROM Ramal WHERE reserva_id IS NULL")
         conn.commit()
+
+    def __repr__(self):
+        return f'<Sala id: {self.id} vagas: {self.vagas}>'
 
     class NotFoundException(Exception):
         pass

@@ -27,9 +27,11 @@ def create_tables():
             horario TEXT,
             FOREIGN KEY (socio_id)
                 REFERENCES Funcionario (id)
+                ON UPDATE SET NULL
                 ON DELETE SET NULL,
             FOREIGN KEY (sala_id)
                 REFERENCES Sala (id)
+                ON UPDATE SET NULL
                 ON DELETE SET NULL
         )
     """)
@@ -39,9 +41,11 @@ def create_tables():
             reserva_id INT,
             FOREIGN KEY (funcionario_id)
                 REFERENCES Funcionario (id)
+                ON UPDATE SET NULL
                 ON DELETE SET NULL,
             FOREIGN KEY (reserva_id)
                 REFERENCES Reserva (id)
+                ON UPDATE SET NULL
                 ON DELETE SET NULL
         )
     """)

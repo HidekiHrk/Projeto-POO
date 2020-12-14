@@ -60,7 +60,7 @@ class Reserva:
         if c.fetchone():
             raise cls.AlreadyExistsException(
                 "Uma reserva já foi feita nesta combinação de sócio/sala e horário.")
-        c.execute("INSERT INTO Reserva (socio_id, sala_id, horario) (?,?,?)",
+        c.execute("INSERT INTO Reserva (socio_id, sala_id, horario) VALUES (?,?,?)",
                   (socio.id, sala.id, str(horario),))
         this_id = c.lastrowid
         conn.commit()
@@ -72,25 +72,53 @@ class Reserva:
         :param fields: id | socio_id | sala_id | horario
         :return: orm.reserva.Reserva
         """
-        field_str = ' AND '.join(map(lambda kv: f'{kv[0]} = ?', fields.keys()))
+        field_str = ' AND '.join(map(lambda kv: f'{kv} = ?', fields.keys()))
         field_str = 'WHERE ' + field_str if field_str != '' else ''
         c.execute(f"SELECT id, socio_id, sala_id, horario FROM Reserva {field_str}",
                   (*fields.values(),))
         data_list = c.fetchall()
         reservas = []
-        if len(data_list) > 1:
+        if len(data_list) >= 1:
             for data in data_list:
                 this_id, socio_id, sala_id, horario = data
-                horario = Horario.get_by_timestring(str(horario))
+                horario = Horario.get_by_timestring(horario)
+                socio = Socio.get(socio_id)
+                sala = Sala.get(sala_id)
+                reservas.append(Reserva(this_id, socio, sala, horario))
+        return reservas
+
+    @staticmethod
+    def get_by_day(day_and_month: tuple, **fields) -> List['Reserva']:
+        """
+        :param day_and_month: (day, month,)
+        :param fields: id | socio_id | sala_id | horario
+        :return: orm.reserva.Reserva
+        """
+        day_and_month = f'{day_and_month[0]}.{day_and_month[1]}'
+        field_str = ' AND '.join(map(lambda kv: f'{kv} = ?', fields.keys()))
+        field_str = 'AND ' + field_str if field_str != '' else ''
+        c.execute(f"""
+                    SELECT id, socio_id, sala_id, horario FROM Reserva
+                    WHERE SUBSTR(horario, 0, INSTR(horario, ',')) = ? {field_str}
+                """,
+                  (day_and_month, *fields.values(),))
+        data_list = c.fetchall()
+        reservas = []
+        if len(data_list) >= 1:
+            for data in data_list:
+                this_id, socio_id, sala_id, horario = data
+                horario = Horario.get_by_timestring(horario)
                 socio = Socio.get(socio_id)
                 sala = Sala.get(sala_id)
                 reservas.append(Reserva(this_id, socio, sala, horario))
         return reservas
 
     def add_funcionario(self, funcionario: Funcionario):
+        if not isinstance(funcionario, Funcionario):
+            raise self.NotSocioException('Apenas funcionários podem ser adicionados a ramais.')
         if isinstance(funcionario, Socio):
             raise self.NotSocioException('Sócios não podem ser adicionados a ramais.')
-        c.execute("SELECT funcionario_id FROM Ramal WHERE funcionario_id = ?, reserva_id = ?",
+        c.execute("SELECT funcionario_id FROM Ramal WHERE funcionario_id = ? AND reserva_id = ?",
                   (funcionario.id, self.__id,))
         if c.fetchone():
             raise self.AlreadyExistsException("O funcionário em questão já possui um Ramal nesta reserva.")
@@ -98,12 +126,16 @@ class Reserva:
         actual_length = len(c.fetchall())
         if actual_length >= self.sala.vagas:
             raise Sala.ExceedingLengthException('A quantidade de vagas na sala acabou.')
-        c.execute("INSERT INTO Ramal (funcionario_id, reserva_id) (?,?)",
+        c.execute("INSERT INTO Ramal (funcionario_id, reserva_id) VALUES (?,?)",
                   (funcionario.id, self.id,))
         conn.commit()
 
     def remove_funcionario(self, funcionario: Funcionario):
-        c.execute("DELETE FROM Ramal WHERE funcionario_id = ?, reserva_id = ?",
+        if not isinstance(funcionario, Funcionario):
+            raise self.NotSocioException('Apenas funcionários podem ser adicionados a ramais.')
+        if isinstance(funcionario, Socio):
+            raise self.NotSocioException('Sócios não podem ser adicionados a ramais.')
+        c.execute("DELETE FROM Ramal WHERE funcionario_id = ? AND reserva_id = ?",
                   (funcionario.id, self.__id,))
         conn.commit()
 
@@ -118,8 +150,15 @@ class Reserva:
         data = c.fetchall()
         return data
 
+    def __repr__(self):
+        return f'<Reserva {self.__id} {self.__socio} {self.__sala} {repr(self.horario)}>'
+
     class AlreadyExistsException(Exception):
         pass
 
     class NotSocioException(Exception):
         pass
+
+    class NotFuncionarioException(Exception):
+        pass
+

@@ -26,7 +26,7 @@ class Funcionario:
 
     @classmethod
     def create(cls, name: str):
-        c.execute("INSERT INTO Funcionario (name, role) (?,?)",
+        c.execute("INSERT INTO Funcionario (name, role) VALUES (?,?)",
                   (name, cls.get_role(),))
         this_id = c.lastrowid
         conn.commit()
@@ -64,3 +64,6 @@ class Funcionario:
     class NotFoundException(Exception):
         pass
 
+    def __repr__(self):
+        role = self.get_role()
+        return f'<{role} nome: {self.name} id: {self.id}>'
