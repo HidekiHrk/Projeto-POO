@@ -1,3 +1,4 @@
+import os
 from orm.db import create_tables
 from funcionarios.socio import Socio
 from funcionarios.funcionario import Funcionario
@@ -7,6 +8,47 @@ from orm.sala import Sala
 from orm.reserva import Reserva
 from orm.horario import Horario
 
+COMMAND_INFO = '''
+                ESCOLHA UMA DAS OPÇÕES
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDOS PARA CADASTRO
+        1 - Cadastro de sócios
+        2 - Cadastro de funcionários
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDOS PARA CONSULTA
+        3 - Consultar reserva
+        4 - Consultar informações dos sócios
+        8 - Consultar salas
+        10 - Consultar informações dos funcionários
+        15 - Consultar funcionários em uma reserva
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDOS PARA VIZUALIZAÇÃO
+        5 - Vizualizar reservas
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDO PARA RESERVAR SALA
+        6 - Criar reserva de sala
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDO PARA CRIAÇÃO DE SALAS
+        7 - Criar sala
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDO PARA ADCIONAR FUNCIONÁRIO A UMA SALA
+        9 - Adiconar funcionário
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDOS PARA REMOÇÃO
+        11 - Remover reserva 
+        12 - Remover funcionário da reserva 
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                COMANDOS PARA ALTERAÇÃO
+        13 - Alterar nome do sócio na reserva
+        14 - Alterar horário da reserva
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                LIMPAR COMANDOS
+        Insira 888 para limpar terminal
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                FINALIZAR PROGRAMA
+        Insira 999 para encerrar execução
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        '''
 
 class Program:
     def __init__(self):
@@ -45,7 +87,7 @@ class Program:
             if len(reservas) > 0:
                 print(reservas[0])
         elif comando == 4:
-            print(Socio.get_all())
+            print(*Socio.get_all(), sep="\n")
         elif comando == 5:
             print("""OBS: em caso de campos vazios será fornecido todas as informações""")
             socio_id = input("Insira o id do sócio: ")
@@ -77,7 +119,7 @@ class Program:
                 capacidade_de_pessoas = int(input(f'Insira a quantidade de pessoas que a sala {i + 1} pode comportar: '))
                 Sala.create(capacidade_de_pessoas)
         elif comando == 8:
-            print(Sala.get_all())
+            print(*Sala.get_all(), sep="\n")
         elif comando == 9:
             reserva_id = int(input('Insira o id da reserva: '))
             reservas = Reserva.get_by(id=reserva_id)
@@ -88,8 +130,8 @@ class Program:
                 reserva.add_funcionario(funcionario)
 
         elif comando == 10:
-            print(Programador.get_all())
-            print(Designer.get_all())
+            print(*Programador.get_all(), sep='\n')
+            print(*Designer.get_all(), sep="\n")
         elif comando == 11:
             reserva_id = int(input('Insira o id da reserva: '))
             reservas = Reserva.get_by(id=reserva_id)
@@ -124,49 +166,25 @@ class Program:
                 hora = int(novo_horario[2])
                 horario = Horario(dia, mes, hora)
                 reserva.horario = horario
+        elif comando == 15:
+            reserva_id = int(input('Insira o id da reserva: '))
+            reservas = Reserva.get_by(id=reserva_id)
+            if len(reservas) > 0:
+                reserva = reservas[0]
+                funcionarios = reserva.get_all_funcionarios()
+                funcionarios = map(lambda f: "<{} nome: {} id: {}>".format(*f[::-1]), funcionarios)
+                print(*funcionarios, sep="\n")
+        elif comando == 888:
+            os.system('cls||clear')
+            print(COMMAND_INFO)
         elif comando == 999:
             self.is_running = False
         else:
             print('COMANDO INCORRETO')
 
     def start(self):
-        print('''
-                ESCOLHA UMA DAS OPÇÕES
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDOS PARA CADASTRO
-        1 - Cadastro de sócios
-        2 - Cadastro de funcionários
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDOS PARA CONSULTA
-        3 - Consultar reserva
-        4 - Consultar informações dos sócios
-        8 - Consultar salas
-        10 - Consultar informações dos funcionários
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDOS PARA VIZUALIZAÇÃO
-        5 - Vizualizar reservas
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDO PARA RESERVAR SALA
-        6 - Criar reserva de sala
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDO PARA CRIAÇÃO DE SALAS
-        7 - Criar sala
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDO PARA ADCIONAR FUNCIONÁRIO A UMA SALA
-        9 - Adiconar funcionário
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDOS PARA REMOÇÃO
-        11 - Remover reserva 
-        12 - Remover funcionário da reserva 
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                COMANDOS PARA ALTERAÇÃO
-        13 - Alterar nome do sócio na reserva
-        14 - Alterar horário da reserva
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                FINALIZAR PROGRAMA
-        Insira 999 para encerrar execução
-        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-        ''')
+        os.system('cls||clear')
+        print(COMMAND_INFO)
         self.is_running = True
         create_tables()
         while self.is_running:
