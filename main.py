@@ -39,7 +39,7 @@ COMMAND_INFO = '''
         12 - Remover funcionário da reserva 
         -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
                 COMANDOS PARA ALTERAÇÃO
-        13 - Alterar nome do sócio na reserva
+        13 - Alterar sócio na reserva
         14 - Alterar horário da reserva
         -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
                 LIMPAR COMANDOS
@@ -151,10 +151,8 @@ class Program:
             reservas = Reserva.get_by(id=reserva_id)
             if len(reservas) > 0:
                 reserva = reservas[0]
-                novo_socio = input('Nome do sócio: ')
-                Socio.create(novo_socio)
-                lista_socio = Socio.get_all()
-                reserva.socio = lista_socio[-1]
+                novo_socio = int(input('Id do sócio: '))
+                reserva.socio = Socio.get(novo_socio)
         elif comando == 14:
             reserva_id = int(input('Insira o id da reserva: '))
             reservas = Reserva.get_by(id=reserva_id)
